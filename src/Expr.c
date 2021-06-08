@@ -33,6 +33,64 @@ double eval_expr(expr e) {
   }
 }
 
+expr create_expr(char *s, int *start_index, int lim) {//creates the expr using the user input
+  expr begin_expr = (expr)malloc(sizeof(struct Expr));
+  expr t = begin_expr;
+  expr u;
+  while (s[*start_index] != '\0' && s[*start_index] != ')' && *start_index < lim) {
+    if (s[*start_index] == ' ') {
+      *start_index = *start_index + 1;
+      continue;
+    } else {
+      if (s[*start_index] == '(') {
+          *start_index = *start_index + 1;
+          expr p = create_expr(s, start_index, lim);
+          if (!p) {
+            printf("Bad synatx\n");
+            return NULL;
+          }
+          t->type_tag = '(';
+          t->value = p;
+          t->next = (expr)malloc(sizeof(struct Expr));
+          u = t;
+          t = t->next;
+      } else if (is_numeric(s[*start_index])) {
+        int check_n = *start_index;
+        double num =  get_number(s, start_index, lim);
+        if ((*start_index - check_n) <= 0) {
+          printf("bad stuff\n");
+        }
+        double *np = (double*)malloc(sizeof(double));
+        *np = num;
+        t->value = np;
+        t->type_tag = 'n';
+        t->next = (expr)malloc(sizeof(struct Expr));
+        u = t;
+        t = t->next;
+      } else if (is_operator(s[*start_index])) {
+        char *cp = (char*)malloc(sizeof(char));
+        *cp = s[*start_index];
+        t->value = cp;
+        t->type_tag = 'o';
+        t->next = (expr)malloc(sizeof(struct Expr));
+        u = t;
+        t = t->next;
+        *start_index = *start_index + 1;
+      } else {
+        printf("Bad syntax\n");
+        return NULL;
+      }
+    }
+  }
+
+    u->next = NULL;
+    if (s[*start_index] == ')') {
+      *start_index = *start_index + 1;
+    }
+
+  return begin_expr;
+}
+
 expr copy_expr(expr e) { //recursively copies the whole list
   if (!e) {
     return NULL;
@@ -97,6 +155,24 @@ void free_expr(expr e) { //recursively frees the memory allocated for expression
   }
 }
 
+void print_expr(expr e) {//prints the expr
+  expr t = e;
+  while (t != NULL) {
+    if (t->type_tag == '(') {
+      printf("(");
+      print_expr(t->value);
+      printf(") ");
+      t = t->next;
+    } else if (t->type_tag == 'n') {
+      printf(" %.2lf ", *((double*) t->value));
+      t = t->next;
+    } else if (t->type_tag == 'o') {
+      printf("%c ", *((char*)t->value));
+      t = t->next;
+    }
+  }
+}
+
 int is_number(expr e) {
   return (e->type_tag == 'n' && !e->next);
 }
@@ -125,7 +201,7 @@ int is_product(expr e) {//checks if the expression is a product
   return 0;
 }
 
-expr addend(expr e) {
+expr addend(expr e) {//get all the terms before the '+' sign
   expr e_addend  = copy_single_expr(e);
   expr t = e_addend;
   e = e->next;
@@ -138,7 +214,7 @@ expr addend(expr e) {
   return e_addend;
 }
 
-expr augend(expr e) {
+expr augend(expr e) {//get all the terms after the '+' sign
   int flag = 0;
 
   while (!flag) {
@@ -161,7 +237,7 @@ expr augend(expr e) {
   return e_augend;
 }
 
-expr multiplier(expr e) {
+expr multiplier(expr e) {//get all the terms before the '*' sign
   expr e_multiplier  = copy_single_expr(e);
   expr t = e_multiplier;
   e = e->next;
@@ -174,7 +250,7 @@ expr multiplier(expr e) {
   return e_multiplier;
 }
 
-expr multiplicand(expr e) {
+expr multiplicand(expr e) {//get all the terms after the '*' sign
   int flag = 0;
 
   while (!flag) {
@@ -200,7 +276,7 @@ expr multiplicand(expr e) {
 int is_expr_paren(expr e) { //does it have extraneous parenthesis like ((3+4))
   return (e->type_tag == '(');
 }
-int get_user_expr(char s[], int lim) {
+int get_user_expr(char s[], int lim) {//get input string from user
   int c, i;
   for (i = 0; i < lim - 1 && (c = getchar()) != EOF && c != '\n'; i++) {
     s[i] = c;
@@ -210,82 +286,6 @@ int get_user_expr(char s[], int lim) {
     s[i] = '\0';
   }
   return i; //returns the length of the whole string
-}
-
-void print_expr(expr e) {//prints the expr
-  expr t = e;
-  while (t != NULL) {
-    if (t->type_tag == '(') {
-      printf("(");
-      print_expr(t->value);
-      printf(") ");
-      t = t->next;
-    } else if (t->type_tag == 'n') {
-      printf(" %.2lf ", *((double*) t->value));
-      t = t->next;
-    } else if (t->type_tag == 'o') {
-      printf("%c ", *((char*)t->value));
-      t = t->next;
-    }
-  }
-}
-
-expr create_expr(char *s, int *start_index, int lim) {//creates the expr using the user input
-  expr begin_expr = (expr)malloc(sizeof(struct Expr));
-  expr t = begin_expr;
-  expr u;
-  while (s[*start_index] != '\0' && s[*start_index] != ')' && *start_index < lim) {
-    if (s[*start_index] == ' ') {
-      *start_index = *start_index + 1;
-      continue;
-    } else {
-      if (s[*start_index] == '(') {
-          *start_index = *start_index + 1;
-          expr p = create_expr(s, start_index, lim);
-          if (!p) {
-            printf("Bad synatx\n");
-            return NULL;
-          }
-          t->type_tag = '(';
-          t->value = p;
-          t->next = (expr)malloc(sizeof(struct Expr));
-          u = t;
-          t = t->next;
-      } else if (is_numeric(s[*start_index])) {
-        int check_n = *start_index;
-        double num =  get_number(s, start_index, lim);
-        if ((*start_index - check_n) <= 0) {
-          printf("bad stuff\n");
-        }
-        double *np = (double*)malloc(sizeof(double));
-        *np = num;
-        t->value = np;
-        t->type_tag = 'n';
-        t->next = (expr)malloc(sizeof(struct Expr));
-        u = t;
-        t = t->next;
-      } else if (is_operator(s[*start_index])) {
-        char *cp = (char*)malloc(sizeof(char));
-        *cp = s[*start_index];
-        t->value = cp;
-        t->type_tag = 'o';
-        t->next = (expr)malloc(sizeof(struct Expr));
-        u = t;
-        t = t->next;
-        *start_index = *start_index + 1;
-      } else {
-        printf("Bad syntax\n");
-        return NULL;
-      }
-    }
-  }
-
-    u->next = NULL;
-    if (s[*start_index] == ')') {
-      *start_index = *start_index + 1;
-    }
-
-  return begin_expr;
 }
 
 int is_numeric(char c) {
