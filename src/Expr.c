@@ -10,7 +10,9 @@ struct Expr {
 double eval(char *s) {
   int i = 0;
   expr e = create_expr(s, &i, 100);
-  return eval_expr(e);
+  double val = eval_expr(e);
+  free_expr(e); //need to free the space before returning
+  return val;
 }
 double eval_expr(expr e) {
   if (is_number(e)) {
