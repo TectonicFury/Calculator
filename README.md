@@ -1,3 +1,3 @@
 # Calculator
-A calculator with two operators (+ & *) الحمد لله. 
-ان شا الله this exercise will be stepping stone to implementing interpreters for programming languages.
+الحمد لله A calculator with two operators (+ & *) 
+This exercise will ان شا الله be a stepping stone to implementing interpreters for programming languages.
